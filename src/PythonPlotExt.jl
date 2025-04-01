@@ -13,17 +13,17 @@ function __init__()
      println("Python libraries installed")
 end
 
-function plot(y::DimArray; lwcentral=3, lwedges=0, kwargs...)
+function plot(y::DimArray; lwcentral=3, lwedges=0,lzorder=0,fbzorder=0, kwargs...)
     unc = ustrip.(uncertainty.(vec(y)))    
     x = ustrip.(collect(first(dims(y))))
     xunit = unit(first(first(dims(y))))
     yunit = unit(first(y))
     y = ustrip.(value.(vec(y)))
-    plot(x, y; kwargs...)
+    plot(x, y, linewidth = lwcentral, zorder = lzorder; kwargs...)
     if sum(unc) != 0 
-        f = fill_between(x = x, y1 = y .- unc, y2 = y .+ unc, alpha = 0.3, linewidth = lwedges; kwargs...)
+        f = fill_between(x = x, y1 = y .- unc, y2 = y .+ unc, alpha = 0.3, linewidth = lwedges, zorder = fbzorder; kwargs...)
     end
-    
+
     xlabel(string(xunit))
     ylabel(string(yunit))
     return x, y 
@@ -81,6 +81,18 @@ function plot(x::Vector{Quantity}, y::Vector{Quantity}; kwargs...)
 end
 
 
+function scatter(x::Vector{Measurement{T1}}, y::Vector{Measurement{T2}}; kwargs...) where {T1 <: AbstractFloat, T2 <: AbstractFloat}
+    xerr = uncertainty.(ustrip.(x))
+    yerr = uncertainty.(ustrip.(y))
+    xunit = unit(first(x))
+    yunit = unit(first(y))
+    x = value.(ustrip.(x))
+    y = value.(ustrip.(y))
+    errorbar(x, y, xerr = xerr, yerr = yerr, fmt = "."; kwargs...)
+    xlabel(string(xunit))
+    ylabel(string(yunit))
+end
+
 
 function scatter(x::Vector{Measurement{T}}, y::Vector; kwargs...) where T <: AbstractFloat
     xerr = uncertainty.(ustrip.(x))
@@ -90,6 +102,18 @@ function scatter(x::Vector{Measurement{T}}, y::Vector; kwargs...) where T <: Abs
     x = value.(ustrip.(x))
     y = value.(ustrip.(y))
     errorbar(x, y, xerr = xerr; kwargs...)
+    xlabel(string(xunit))
+    ylabel(string(yunit))
+end
+
+function scatter(x::Vector, y::Vector{Measurement{T}}; kwargs...) where T <: AbstractFloat
+    #xerr = uncertainty.(ustrip.(x))
+    yerr = uncertainty.(ustrip.(y))
+    xunit = unit(first(x))
+    yunit = unit(first(y))
+    x = value.(ustrip.(x))
+    y = value.(ustrip.(y))
+    errorbar(x, y, yerr = yerr; kwargs...)
     xlabel(string(xunit))
     ylabel(string(yunit))
 end
